@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 
 namespace MvcApplication3.Controllers
 {
+    using Service;
+
     public class ResultController : ApiController
     {
-        public Service.Service Service = new Service.Service();
+        /// <summary>
+        /// 初始化服务类
+        /// </summary>
+        public Service Service = new Service();
 
         /// <summary>
         /// 获取战斗结果

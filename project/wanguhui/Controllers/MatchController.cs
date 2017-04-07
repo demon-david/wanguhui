@@ -12,6 +12,9 @@ namespace wanguhui.Controllers
 
     public class MatchController : ApiController
     {
+        /// <summary>
+        /// 初始化服务类
+        /// </summary>
         public Service Service = new Service();
 
         /// <summary>
@@ -19,9 +22,9 @@ namespace wanguhui.Controllers
         /// </summary>
         /// <param name="id">用户id</param>
         /// <returns></returns>
-        public User GetMatch(String id)
+        public void GetMatch(String id)
         {
-            return Service.Match(id);
+            Service.Match(id);
         }
     }
 }

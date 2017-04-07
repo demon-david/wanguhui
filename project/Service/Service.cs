@@ -16,10 +16,13 @@ namespace Service
         private static List<User> allUser;
 
         /// <summary>
-        /// 存储
+        /// 存储匹配战斗信息(分出胜负)
         /// </summary>
         private static Dictionary<User, User> fightMatches;
 
+        /// <summary>
+        /// 存储平局玩家信息
+        /// </summary>
         private static Dictionary<User, User> pjMatches;
 
         static Service()
@@ -49,17 +52,17 @@ namespace Service
         /// </summary>
         /// <param name="userId">用户Id</param>
         /// <returns></returns>
-        public User Match(String userId)
+        public void Match(String userId)
         {
             User matchUser;
 
-            // asdasd
+            // 查询相应用户
             var user = allUser.Find(a => a.Id.ToString() == userId);
             user.isMatching = true;
 
             while (true)
             {
-                // asdasd
+                // 
                 if (fightMatches.ContainsKey(user) || fightMatches.ContainsValue(user) || pjMatches.ContainsKey(user) || pjMatches.ContainsValue(user))
                 {
                     if (fightMatches.ContainsKey(user) || fightMatches.ContainsValue(user))
