@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service", "Service\Service.csproj", "{06F92C13-B2CD-442C-B1E0-36F991C32B44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wanguhui", "wanguhui\wanguhui.csproj", "{CAA56741-E26E-4C1E-B444-C6EDB1664C76}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06F92C13-B2CD-442C-B1E0-36F991C32B44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06F92C13-B2CD-442C-B1E0-36F991C32B44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06F92C13-B2CD-442C-B1E0-36F991C32B44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06F92C13-B2CD-442C-B1E0-36F991C32B44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAA56741-E26E-4C1E-B444-C6EDB1664C76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAA56741-E26E-4C1E-B444-C6EDB1664C76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAA56741-E26E-4C1E-B444-C6EDB1664C76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAA56741-E26E-4C1E-B444-C6EDB1664C76}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,8 @@
+D:\zbh\wanguhui\Service\bin\Debug\Service.dll.config
+D:\zbh\wanguhui\Service\bin\Debug\Service.dll
+D:\zbh\wanguhui\Service\bin\Debug\Service.pdb
+D:\zbh\wanguhui\Service\bin\Debug\EntityFramework.dll
+D:\zbh\wanguhui\Service\bin\Debug\EntityFramework.xml
+D:\zbh\wanguhui\Service\bin\Debug\zh-Hans\EntityFramework.resources.dll
+D:\zbh\wanguhui\Service\obj\Debug\Service.dll
+D:\zbh\wanguhui\Service\obj\Debug\Service.pdb
