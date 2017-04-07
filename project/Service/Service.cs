@@ -1,21 +1,35 @@
-﻿namespace Service
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+
+namespace Service
 {
-    #region using directives
-
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-
-    #endregion
-
+    /// <summary>
+    /// 逻辑服务类
+    /// </summary>
     public class Service
     {
-        private static List<User> allUser = MySQL.GetAllUser();
+        /// <summary>
+        /// 所有玩家信息
+        /// </summary>
+        private static List<User> allUser;
 
-        private static Dictionary<User, User> fightMatches = new Dictionary<User, User>();
+        /// <summary>
+        /// 存储
+        /// </summary>
+        private static Dictionary<User, User> fightMatches;
 
-        private static Dictionary<User, User> pjMatches = new Dictionary<User, User>();
+        private static Dictionary<User, User> pjMatches;
+
+        static Service()
+        {
+            // 获取所有玩家信息
+            allUser = MySQLHelper.ExecuteQuery<User>("Select id,score from wanguhui.user");
+
+            fightMatches = new Dictionary<User, User>();
+            pjMatches = new Dictionary<User, User>();
+        }
 
         public Service()
         {
@@ -37,13 +51,15 @@
         /// <returns></returns>
         public User Match(String userId)
         {
-            //return new User { Id = Guid.NewGuid(), Score = 250 };
             User matchUser;
+
+            // asdasd
             var user = allUser.Find(a => a.Id.ToString() == userId);
             user.isMatching = true;
+
             while (true)
             {
-                matchUser = allUser.FirstOrDefault(a => Condition(user, a));
+                // asdasd
                 if (fightMatches.ContainsKey(user) || fightMatches.ContainsValue(user) || pjMatches.ContainsKey(user) || pjMatches.ContainsValue(user))
                 {
                     if (fightMatches.ContainsKey(user) || fightMatches.ContainsValue(user))
@@ -51,21 +67,29 @@
                     else
                         return pjMatches.ContainsKey(user) ? pjMatches[user] : pjMatches.Where(v => v.Value == user).Select(f => f.Key).FirstOrDefault();
                 }
+
+                // asdasdasd
+                matchUser = allUser.FirstOrDefault(a => Condition(user, a));
                 if (matchUser == null || matchUser == user)
                 {
                     Thread.Sleep(100);
                     continue;
                 }
 
-                if ((!fightMatches.ContainsKey(user) && !fightMatches.ContainsValue(user)) && (!pjMatches.ContainsKey(user) && !pjMatches.ContainsValue(user)) && Condition(user, matchUser))
+                // asdasd
+                if ((!fightMatches.ContainsKey(user) && !fightMatches.ContainsValue(user)) &&
+                    (!pjMatches.ContainsKey(user) && !pjMatches.ContainsValue(user)) &&
+                    Condition(user, matchUser))
                 {
                     lock (user)
                     {
                         lock (matchUser)
                         {
-                            if ((!fightMatches.ContainsKey(user) && !fightMatches.ContainsValue(user)) && (!pjMatches.ContainsKey(user) && !pjMatches.ContainsValue(user)) && Condition(user, matchUser))
+                            if ((!fightMatches.ContainsKey(user) && !fightMatches.ContainsValue(user)) && (!pjMatches.ContainsKey(user) &&
+                                !pjMatches.ContainsValue(user)) && Condition(user, matchUser))
                             {
                                 Fight(user, matchUser);
+
                                 break;
                             }
                             else
@@ -80,10 +104,16 @@
                 }
             }
 
+            // asdasd
             if (fightMatches.ContainsKey(user) || fightMatches.ContainsValue(user))
-            matchUser = fightMatches.ContainsKey(user) ? fightMatches[user] : fightMatches.Where(v => v.Value == user).Select(f => f.Key).FirstOrDefault();
+            {
+                matchUser = fightMatches.ContainsKey(user) ? fightMatches[user] : fightMatches.Where(v => v.Value == user).Select(f => f.Key).FirstOrDefault();
+            }
             else
+            {
                 matchUser = pjMatches.ContainsKey(user) ? pjMatches[user] : pjMatches.Where(v => v.Value == user).Select(f => f.Key).FirstOrDefault();
+            }
+
             return matchUser;
         }
 
@@ -95,7 +125,9 @@
         /// <returns>匹配成功与否</returns>
         private Boolean Condition(User user1, User user2)
         {
-            return (user1.Score + 100 >= user2.Score && user1.Score - 100 <= user2.Score) && user2.isMatching == true && (!fightMatches.ContainsKey(user2) && !fightMatches.ContainsValue(user2)) && (!pjMatches.ContainsKey(user2) && !pjMatches.ContainsValue(user2));
+            return user2.isMatching == true && (user1.Score + 100 >= user2.Score && user1.Score - 100 <= user2.Score) &&
+                 (!fightMatches.ContainsKey(user2) && !fightMatches.ContainsValue(user2)) &&
+                (!pjMatches.ContainsKey(user2) && !pjMatches.ContainsValue(user2));
         }
 
         /// <summary>
@@ -198,7 +230,8 @@
         /// <param name="user"></param>
         private void Update(User user)
         {
-            MySQL.Update(user);
+            var sql = String.Format("update wanguhui.user set score = {0} where id = '{1}'", user.Score, user.Id);
+            MySQLHelper.ExecuteNonQuery(sql);
         }
 
         /// <summary>
@@ -216,8 +249,10 @@
                 case -1:
                     user1.Score -= 10;
                     user2.Score += 10;
+
                     Update(user1);
                     Update(user2);
+
                     // 胜方作为Key存放
                     fightMatches.Add(user2, user1);
                     break;
@@ -227,17 +262,16 @@
                 case 1:
                     user1.Score += 10;
                     user2.Score -= 10;
+
+                    // asdasd
                     Update(user1);
                     Update(user2);
+
                     // 胜方作为Key存放
                     fightMatches.Add(user1, user2);
+
                     break;
             }
-        }
-
-        public void AddNewUser()
-        {
-            MySQL.Add();
         }
     }
 }

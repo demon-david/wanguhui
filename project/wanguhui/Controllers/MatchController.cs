@@ -1,4 +1,4 @@
-﻿using Service;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +8,11 @@ using System.Web.Http;
 
 namespace wanguhui.Controllers
 {
+    using Service;
+
     public class MatchController : ApiController
     {
-        public Service.Service Service = new Service.Service();
+        public Service Service = new Service();
 
         /// <summary>
         /// 匹配对手
@@ -20,7 +22,6 @@ namespace wanguhui.Controllers
         public User GetMatch(String id)
         {
             return Service.Match(id);
-            //return new User { Id = Guid.NewGuid(), Score = 250 };
         }
     }
 }

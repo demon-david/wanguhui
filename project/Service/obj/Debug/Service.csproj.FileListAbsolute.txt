@@ -6,3 +6,10 @@ D:\zbh\wanguhui\Service\bin\Debug\EntityFramework.xml
 D:\zbh\wanguhui\Service\bin\Debug\zh-Hans\EntityFramework.resources.dll
 D:\zbh\wanguhui\Service\obj\Debug\Service.dll
 D:\zbh\wanguhui\Service\obj\Debug\Service.pdb
+D:\MyGit\wanguhui\project\Service\bin\Debug\Service.dll
+D:\MyGit\wanguhui\project\Service\bin\Debug\Service.pdb
+D:\MyGit\wanguhui\project\Service\bin\Debug\EntityFramework.dll
+D:\MyGit\wanguhui\project\Service\bin\Debug\EntityFramework.xml
+D:\MyGit\wanguhui\project\Service\obj\Debug\Service.dll
+D:\MyGit\wanguhui\project\Service\obj\Debug\Service.pdb
+D:\MyGit\wanguhui\project\Service\bin\Debug\zh-Hans\EntityFramework.resources.dll
