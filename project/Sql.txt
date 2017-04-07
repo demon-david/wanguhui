@@ -1,0 +1,7 @@
+/*创建数据库*/
+create database wanguhui
+/*创建表*/
+create table `wanguhui`.`user` (
+  `id` CHAR(36) NOT NULL,
+  `score` INT NOT NULL,
+  PRIMARY KEY (`id`));
