@@ -18,32 +18,32 @@ namespace Service
         private static List<User> matchUsers;
 
         /// <summary>
-        /// 同步最近匹配过的用户结构matchUsers
+        /// 用于同步最近匹配过的用户结构matchUsers
         /// </summary>
         private static ReaderWriterLockSlim matchRwl;
 
         /// <summary>
-        /// 同步排行榜
+        /// 用于同步排行榜
         /// </summary>
         private static ReaderWriterLockSlim rankingsRwl;
 
         /// <summary>
-        /// 同步匹配线程中的匹配逻辑
+        /// 用于同步匹配线程中的匹配逻辑
         /// </summary>
         private static ManualResetEvent manualResetEvent;
 
         /// <summary>
-        /// 对用户按照一定规则进行匹配
+        /// 对用户按照一定规则进行匹配处理线程
         /// </summary>
         private static Thread matchThread;
 
         /// <summary>
-        /// 从匹配数组中移除最近一个小时没有进行匹配的用户
+        /// 从匹配数组中移除最近一个小时没有进行匹配的用户处理线程
         /// </summary>
         private static Timer removeUserThread;
 
         /// <summary>
-        /// 与数据库交互的操作
+        /// 与数据库交互操作
         /// </summary>
         private static DbOperation dbOperation = new DbOperation();
 
