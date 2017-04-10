@@ -13,3 +13,6 @@ D:\MyGit\wanguhui\project\Service\bin\Debug\EntityFramework.xml
 D:\MyGit\wanguhui\project\Service\obj\Debug\Service.dll
 D:\MyGit\wanguhui\project\Service\obj\Debug\Service.pdb
 D:\MyGit\wanguhui\project\Service\bin\Debug\zh-Hans\EntityFramework.resources.dll
+D:\MyGit\wanguhui\project\Service\obj\Debug\Service.csprojResolveAssemblyReference.cache
+D:\MyGit\wanguhui\project\Service\bin\Debug\MySqlDatabase.dll
+D:\MyGit\wanguhui\project\Service\bin\Debug\MySqlDatabase.pdb

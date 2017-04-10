@@ -5,6 +5,8 @@ using System.Threading;
 
 namespace Service
 {
+    using MySqlDatabase;
+
     /// <summary>
     /// 逻辑服务类
     /// </summary>
@@ -25,7 +27,9 @@ namespace Service
         /// </summary>
         private static ReaderWriterLockSlim rankingsRwl;
 
-
+        /// <summary>
+        /// 用于匹配的同步事件
+        /// </summary>
         private static ManualResetEvent manualResetEvent;
 
         /// <summary>
@@ -38,6 +42,11 @@ namespace Service
         /// </summary>
         private static Timer removeUserThread;
 
+        /// <summary>
+        /// 与数据库交互类
+        /// </summary>
+        private static DbOperation dbOperation = new DbOperation();
+
         static Service()
         {
             matchUsers = new List<User>();
@@ -46,8 +55,7 @@ namespace Service
             manualResetEvent = new ManualResetEvent(false);
 
             // 初始化排行榜
-            Rankings.RankingUsers =
-                MySQLHelper.ExecuteQuery<User>("select id,score from wanguhui.user order by score desc limit 200");
+            Rankings.RankingUsers = dbOperation.GetTop<User>(200);
 
             // 初始化匹配线程
             matchThread = new Thread(MatchThread);
@@ -98,7 +106,7 @@ namespace Service
                 matchRwl.EnterWriteLock();
                 try
                 {
-                    user = MySQLHelper.ExecuteQuery<User>(String.Format("select id,score from wanguhui.user where id='{0}'", userId))[0];
+                    user = dbOperation.GetUser<User>(userId);
                     matchUsers.Add(user);
                 }
                 finally
@@ -135,42 +143,29 @@ namespace Service
                     // 遍历每个用户查找相应的匹配用户
                     foreach (var user in matchUsers.AsParallel())
                     {
-                        // 该用户在匹配中且尚未找到匹配对手
-                        if (user.IsMatching && user.MatchUser == null)
+                        // 用户尚未开始匹配或者用户已匹配成功
+                        if (!user.IsMatching || user.MatchUser != null)
                         {
-                            var result = Monitor.TryEnter(user);
-                            if (result)
+                            continue;
+                        }
+
+                        // 该用户在匹配中且尚未找到匹配对手
+                        var result = Monitor.TryEnter(user);
+                        if (result)
+                        {
+                            // 用户尚未开始匹配或者用户已匹配成功
+                            if ((!user.IsMatching) || user.MatchUser != null)
                             {
-                                if (user.IsMatching && user.MatchUser == null)
-                                {
-                                    try
-                                    {
-                                        for (int j = 0; j < matchUsers.Count; j++)
-                                        {
-                                            // 匹配条件:用户不同,正在匹配中,积分差距不超过100
-                                            if (user != matchUsers[j] && matchUsers[j].IsMatching && matchUsers[j].MatchUser == null
-                                                && user.Score + 100 >= matchUsers[j].Score && user.Score - 100 <= matchUsers[j].Score)
-                                            {
-                                                lock (matchUsers[j])
-                                                {
-                                                    if (user != matchUsers[j] && matchUsers[j].IsMatching && matchUsers[j].MatchUser == null
-                                                        && user.Score + 100 >= matchUsers[j].Score && user.Score - 100 <= matchUsers[j].Score)
-                                                    {
-                                                        // 更新用户匹配信息
-                                                        user.MatchUser = matchUsers[j];
-                                                        user.Result = FightResult.Fighting;
-                                                        matchUsers[j].MatchUser = user;
-                                                        matchUsers[j].Result = FightResult.Fighting;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    finally
-                                    {
-                                        Monitor.Exit(user);
-                                    }
-                                }
+                                continue;
+                            }
+
+                            try
+                            {
+                                FindMatchUser(user);
+                            }
+                            finally
+                            {
+                                Monitor.Exit(user);
                             }
                         }
                     }
@@ -179,6 +174,90 @@ namespace Service
 
                     Thread.Sleep(20);
                 }
+            }
+        }
+
+        private static void FindMatchUser(User user)
+        {
+            for (int j = 0; j < matchUsers.Count; j++)
+            {
+                // 匹配条件:用户不同,正在匹配中,积分差距不超过100
+                if (user != matchUsers[j] && matchUsers[j].IsMatching && matchUsers[j].MatchUser == null
+                    && user.Score + 100 >= matchUsers[j].Score && user.Score - 100 <= matchUsers[j].Score)
+                {
+                    lock (matchUsers[j])
+                    {
+                        if (user != matchUsers[j] && matchUsers[j].IsMatching && matchUsers[j].MatchUser == null
+                            && user.Score + 100 >= matchUsers[j].Score && user.Score - 100 <= matchUsers[j].Score)
+                        {
+                            // 更新用户匹配信息
+                            user.MatchUser = matchUsers[j];
+                            user.Result = FightResult.Fighting;
+                            matchUsers[j].MatchUser = user;
+                            matchUsers[j].Result = FightResult.Fighting;
+
+                            // 随机生成战斗结果
+                            GenerateFightResult(user, matchUsers[j]);
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 生成战斗结果
+        /// </summary>
+        /// <param name="user1"></param>
+        /// <param name="user2"></param>
+        private static void GenerateFightResult(User user1, User user2)
+        {
+            var random = new Random();
+            switch (random.Next(-1, 2))
+            {
+                case -1:// 输
+                    // 更新用户积分信息
+                    user1.Score -= 10;
+                    user2.Score += 10;
+                    //// 更新用户数据库信息
+                    Update(user1);
+                    Update(user2);
+
+                    // 更新战斗结果
+                    user1.Result = FightResult.Lose;
+                    user2.Result = FightResult.Win;
+
+                    // 更新排行榜
+                    UpdateRankings(user1);
+                    UpdateRankings(user2);
+
+                    break;
+
+                case 0:// 平局
+                    // 更新战斗结果
+                    user1.Result = FightResult.Pj;
+                    user2.Result = FightResult.Pj;
+
+                    break;
+
+                case 1:// 胜利
+                    // 更新用户积分信息
+                    user1.Score += 10;
+                    user2.Score -= 10;
+                    //// 更新用户数据库信息
+                    Update(user1);
+                    Update(user2);
+
+                    // 更新战斗结果
+                    user1.Result = FightResult.Win;
+                    user2.Result = FightResult.Lose;
+
+                    // 更新排行榜
+                    UpdateRankings(user1);
+                    UpdateRankings(user2);
+
+                    break;
             }
         }
 
@@ -220,72 +299,12 @@ namespace Service
             // 战斗结果
             var result = FightResult.None;
 
-            // 匹配到的对手
-            User matchUser = null;
-
             // 查找用户
             var user = matchUsers.Find(a => a.Id.ToString() == userId);
+
+            // 获取战斗结果,并更新用户信息
             if (user != null && user.MatchUser != null)
             {
-                // 如果用户还未生成战斗结果,随机生成战斗结果
-                if (user.Result == FightResult.Fighting)
-                {
-                    matchUser = user.MatchUser;
-                    lock (user)
-                    {
-                        lock (matchUser)
-                        {
-                            var random = new Random();
-                            switch (random.Next(-1, 2))
-                            {
-                                // 输
-                                case -1:
-                                    // 更新用户积分信息
-                                    user.Score -= 10;
-                                    matchUser.Score += 10;
-                                    //// 更新用户数据库信息
-                                    Update(user);
-                                    Update(matchUser);
-
-                                    // 更新战斗结果
-                                    user.Result = FightResult.Lose;
-                                    matchUser.Result = FightResult.Win;
-
-                                    // 更新排行榜
-                                    UpdateRankings(user);
-                                    UpdateRankings(matchUser);
-
-                                    break;
-                                // 平局
-                                case 0:
-                                    // 更新战斗结果
-                                    user.Result = FightResult.Pj;
-                                    matchUser.Result = FightResult.Pj;
-
-                                    break;
-                                // 胜利
-                                case 1:
-                                    // 更新用户积分信息
-                                    user.Score += 10;
-                                    matchUser.Score -= 10;
-                                    //// 更新用户数据库信息
-                                    Update(user);
-                                    Update(matchUser);
-
-                                    // 更新战斗结果
-                                    user.Result = FightResult.Win;
-                                    matchUser.Result = FightResult.Lose;
-
-                                    // 更新排行榜
-                                    UpdateRankings(user);
-                                    UpdateRankings(matchUser);
-
-                                    break;
-                            }
-                        }
-                    }
-                }
-
                 result = user.Result;
                 user.Result = FightResult.None;
                 user.IsMatching = false;
@@ -299,7 +318,7 @@ namespace Service
         /// 更新排行榜
         /// </summary>
         /// <param name="user"></param>
-        private void UpdateRankings(User user)
+        private static void UpdateRankings(User user)
         {
             var lowestScoreInRankings = 0;
 
@@ -313,25 +332,30 @@ namespace Service
                 rankingsRwl.EnterWriteLock();
 
                 // 更新排行榜用户信息
-                if (!Rankings.RankingUsers.Exists(u => u.Id == user.Id))
+                try
                 {
-                    if (Rankings.RankingUsers.Count == 200)
+                    if (!Rankings.RankingUsers.Exists(u => u.Id == user.Id))
                     {
-                        Rankings.RankingUsers[Rankings.RankingUsers.Count - 1] = user;
+                        if (Rankings.RankingUsers.Count == 200)
+                        {
+                            Rankings.RankingUsers[Rankings.RankingUsers.Count - 1] = user;
+                        }
+                        else
+                        {
+                            Rankings.RankingUsers.Add(user);
+                        }
                     }
                     else
                     {
-                        Rankings.RankingUsers.Add(user);
+                        Rankings.RankingUsers.Find(u => u.Id == user.Id).Score = user.Score;
                     }
+
+                    Rankings.RankingUsers = Rankings.RankingUsers.OrderByDescending(u => u.Score).ToList();
                 }
-                else
+                finally
                 {
-                    Rankings.RankingUsers.Find(u => u.Id == user.Id).Score = user.Score;
+                    rankingsRwl.ExitWriteLock();
                 }
-
-                Rankings.RankingUsers = Rankings.RankingUsers.OrderByDescending(u => u.Score).ToList();
-
-                rankingsRwl.ExitWriteLock();
             }
             else
             {
@@ -339,7 +363,6 @@ namespace Service
                 if (Rankings.RankingUsers.Exists(u => u.Id == user.Id))
                 {
                     rankingsRwl.EnterWriteLock();
-
 
                     Rankings.RankingUsers.Remove(Rankings.RankingUsers.Find(u => u.Id == user.Id));
 
@@ -361,10 +384,9 @@ namespace Service
         /// 更新用户积分信息
         /// </summary>
         /// <param name="user"></param>
-        private void Update(User user)
+        private static void Update(User user)
         {
-            var sql = String.Format("update wanguhui.user set score = {0} where id = '{1}'", user.Score, user.Id);
-            MySQLHelper.ExecuteNonQuery(sql);
+            dbOperation.Updata(user.Id.ToString(), user.Score);
         }
     }
 }

@@ -3,6 +3,8 @@ using System.Threading;
 
 namespace Service
 {
+    using MySqlDatabase;
+
     /// <summary>
     /// 处理日常的任务
     /// </summary>
@@ -17,6 +19,11 @@ namespace Service
         /// 当时间到达时触发的事件
         /// </summary>
         public static event Action Reset;
+
+        /// <summary>
+        /// 与数据库交互类
+        /// </summary>
+        private static DbOperation dbOperation = new DbOperation();
 
         static Task()
         {
@@ -36,11 +43,10 @@ namespace Service
         private static void TimerCallback(Object state)
         {
             // 将所有玩家积分清零
-            var sql = @"SET SQL_SAFE_UPDATES = 0;update wanguhui.user set score=200;SET SQL_SAFE_UPDATES = 1;";
-            var affectedRows = MySQLHelper.ExecuteNonQuery(sql);
+            var result = dbOperation.ResetUsers();
 
             // 触发事件
-            if (affectedRows > 0)
+            if (result)
             {
                 if (Reset != null)
                 {

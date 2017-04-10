@@ -1,0 +1,4 @@
+D:\MyGit\wanguhui\project\MySqlDatabase\bin\Debug\MySqlDatabase.dll
+D:\MyGit\wanguhui\project\MySqlDatabase\bin\Debug\MySqlDatabase.pdb
+D:\MyGit\wanguhui\project\MySqlDatabase\obj\Debug\MySqlDatabase.dll
+D:\MyGit\wanguhui\project\MySqlDatabase\obj\Debug\MySqlDatabase.pdb

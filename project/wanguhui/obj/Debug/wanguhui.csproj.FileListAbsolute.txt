@@ -184,3 +184,5 @@ D:\MyGit\wanguhui\project\wanguhui\bin\ko\System.Spatial.resources.dll
 D:\MyGit\wanguhui\project\wanguhui\bin\ru\System.Spatial.resources.dll
 D:\MyGit\wanguhui\project\wanguhui\bin\zh-Hans\System.Spatial.resources.dll
 D:\MyGit\wanguhui\project\wanguhui\bin\zh-Hant\System.Spatial.resources.dll
+D:\MyGit\wanguhui\project\wanguhui\bin\MySqlDatabase.dll
+D:\MyGit\wanguhui\project\wanguhui\bin\MySqlDatabase.pdb
