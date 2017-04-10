@@ -22,10 +22,10 @@ namespace MySqlDatabase
         }
 
         /// <summary>
-        /// 获取积分排行前面的用户
+        /// 获取积分排行前面多少名的用户
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="num">前面多少个用户</param>
+        /// <param name="num">前面多少名用户</param>
         /// <returns></returns>
         public List<T> GetTop<T>(Int32 num) where T : class,new()
         {

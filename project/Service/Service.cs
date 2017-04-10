@@ -13,42 +13,43 @@ namespace Service
     public class Service
     {
         /// <summary>
-        /// 最近匹配过的用户信息
+        /// 最近一个小时匹配过的用户
         /// </summary>
         private static List<User> matchUsers;
 
         /// <summary>
-        /// 用于处理matchUser数据结构的读写锁
+        /// 同步最近匹配过的用户结构matchUsers
         /// </summary>
         private static ReaderWriterLockSlim matchRwl;
 
         /// <summary>
-        /// 用于处理排行榜的读写锁
+        /// 同步排行榜
         /// </summary>
         private static ReaderWriterLockSlim rankingsRwl;
 
         /// <summary>
-        /// 用于匹配的同步事件
+        /// 同步匹配线程中的匹配逻辑
         /// </summary>
         private static ManualResetEvent manualResetEvent;
 
         /// <summary>
-        /// 进行匹配的线程
+        /// 对用户按照一定规则进行匹配
         /// </summary>
         private static Thread matchThread;
 
         /// <summary>
-        /// 从匹配队列中移除长时间没有匹配的用户
+        /// 从匹配数组中移除最近一个小时没有进行匹配的用户
         /// </summary>
         private static Timer removeUserThread;
 
         /// <summary>
-        /// 与数据库交互类
+        /// 与数据库交互的操作
         /// </summary>
         private static DbOperation dbOperation = new DbOperation();
 
         static Service()
         {
+            // 字段初始化
             matchUsers = new List<User>();
             matchRwl = new ReaderWriterLockSlim();
             rankingsRwl = new ReaderWriterLockSlim();
@@ -62,12 +63,13 @@ namespace Service
             matchThread.IsBackground = true;
             matchThread.Start();
 
-            // 初始化移除长时间没有进行匹配的用户的Timer线程
+            // 初始化移除最近一个小时没有进行匹配的用户的线程
             removeUserThread = new Timer(RemoveUserThread, null, TimeSpan.Zero, TimeSpan.FromHours(1));
         }
 
         public Service()
         {
+            // 注册重置事件
             Task.Reset += Task_Reset;
         }
 
@@ -78,12 +80,16 @@ namespace Service
         {
             // 重置匹配数组中用户信息
             matchRwl.EnterWriteLock();
+
             matchUsers.ForEach(a => a.Score = 200);
+
             matchRwl.ExitWriteLock();
 
             // 重置排行榜中用户信息
             rankingsRwl.EnterWriteLock();
+
             Rankings.RankingUsers.ForEach(a => a.Score = 200);
+
             rankingsRwl.ExitWriteLock();
         }
 
@@ -97,13 +103,16 @@ namespace Service
 
             // 查询用户信息
             matchRwl.EnterReadLock();
+
             user = matchUsers.Find(a => a.Id.ToString() == userId);
+
             matchRwl.ExitReadLock();
 
             // 匹配数组不存在该用户时,从数据库中获取用户信息并存入匹配数组中
             if (user == null)
             {
                 matchRwl.EnterWriteLock();
+
                 try
                 {
                     user = dbOperation.GetUser<User>(userId);
@@ -115,7 +124,7 @@ namespace Service
                 }
             }
 
-            // 重置用户信息
+            // 初始化用户信息
             user.IsMatching = true;
             user.MatchUser = null;
             user.LastMatchTime = DateTime.Now;
@@ -131,6 +140,7 @@ namespace Service
         {
             while (true)
             {
+                // 如果匹配数组中的用户个数小于2,则等待
                 if (matchUsers.Count < 2)
                 {
                     manualResetEvent.WaitOne();
@@ -143,17 +153,17 @@ namespace Service
                     // 遍历每个用户查找相应的匹配用户
                     foreach (var user in matchUsers.AsParallel())
                     {
-                        // 用户尚未开始匹配或者用户已匹配成功
+                        // 用户尚未开始匹配或者用户已匹配成功,则不进行匹配
                         if (!user.IsMatching || user.MatchUser != null)
                         {
                             continue;
                         }
 
-                        // 该用户在匹配中且尚未找到匹配对手
+                        // 该用户在匹配中且尚未找到匹配对手,进行匹配
                         var result = Monitor.TryEnter(user);
                         if (result)
                         {
-                            // 用户尚未开始匹配或者用户已匹配成功
+                            // 用户尚未开始匹配或者用户已匹配成功,则不进行匹配
                             if ((!user.IsMatching) || user.MatchUser != null)
                             {
                                 continue;
@@ -161,6 +171,7 @@ namespace Service
 
                             try
                             {
+                                // 查找匹配用户
                                 FindMatchUser(user);
                             }
                             finally
@@ -177,27 +188,32 @@ namespace Service
             }
         }
 
+        /// <summary>
+        /// 查找匹配用户
+        /// </summary>
+        /// <param name="user">与该用户进行匹配</param>
         private static void FindMatchUser(User user)
         {
-            for (int j = 0; j < matchUsers.Count; j++)
+            // 循环遍历每个用户去查找匹配用户
+            foreach (var item in matchUsers.AsParallel())
             {
-                // 匹配条件:用户不同,正在匹配中,积分差距不超过100
-                if (user != matchUsers[j] && matchUsers[j].IsMatching && matchUsers[j].MatchUser == null
-                    && user.Score + 100 >= matchUsers[j].Score && user.Score - 100 <= matchUsers[j].Score)
+                // 当用户在匹配中、尚未匹配成功、满足匹配条件时,进行匹配
+                if (user != item && item.IsMatching && item.MatchUser == null
+                    && user.Score + 100 >= item.Score && user.Score - 100 <= item.Score)
                 {
-                    lock (matchUsers[j])
+                    lock (item)
                     {
-                        if (user != matchUsers[j] && matchUsers[j].IsMatching && matchUsers[j].MatchUser == null
-                            && user.Score + 100 >= matchUsers[j].Score && user.Score - 100 <= matchUsers[j].Score)
+                        if (user != item && item.IsMatching && item.MatchUser == null
+                            && user.Score + 100 >= item.Score && user.Score - 100 <= item.Score)
                         {
                             // 更新用户匹配信息
-                            user.MatchUser = matchUsers[j];
+                            user.MatchUser = item;
                             user.Result = FightResult.Fighting;
-                            matchUsers[j].MatchUser = user;
-                            matchUsers[j].Result = FightResult.Fighting;
+                            item.MatchUser = user;
+                            item.Result = FightResult.Fighting;
 
                             // 随机生成战斗结果
-                            GenerateFightResult(user, matchUsers[j]);
+                            GenerateFightResult(user, item);
 
                             break;
                         }
@@ -214,6 +230,8 @@ namespace Service
         private static void GenerateFightResult(User user1, User user2)
         {
             var random = new Random();
+
+            // 随机生成战斗结果,-1表示输,0表示平局,1表示赢
             switch (random.Next(-1, 2))
             {
                 case -1:// 输
@@ -241,7 +259,7 @@ namespace Service
 
                     break;
 
-                case 1:// 胜利
+                case 1:// 赢
                     // 更新用户积分信息
                     user1.Score += 10;
                     user2.Score -= 10;
@@ -262,7 +280,7 @@ namespace Service
         }
 
         /// <summary>
-        /// 处理匹配数组线程
+        /// 移除最近一个小时没有进行匹配的用户
         /// </summary>
         /// <param name="state"></param>
         private static void RemoveUserThread(Object state)
@@ -271,6 +289,7 @@ namespace Service
 
             try
             {
+                // 获取当前时间
                 var now = DateTime.Now;
 
                 // 当上次匹配时间距离现在超过一个小时,将用户从匹配数组中移除
@@ -292,10 +311,9 @@ namespace Service
         /// 获取战斗结果
         /// </summary>
         /// <param name="userId">用户Id</param>
-        /// <returns>-1表示user2获胜,0表示平局,1表示user1获胜</returns>
+        /// <returns></returns>
         public FightResult GetFightResult(String userId)
         {
-            // 战斗结果
             var result = FightResult.None;
 
             // 查找用户
@@ -319,13 +337,16 @@ namespace Service
         /// <param name="user"></param>
         private static void UpdateRankings(User user)
         {
+            // 排行榜中最低积分
             var lowestScoreInRankings = 0;
 
+            // 获取排行榜中最低积分
             lock (Rankings.RankingUsers)
             {
                 lowestScoreInRankings = Rankings.RankingUsers[Rankings.RankingUsers.Count - 1].Score;
             }
 
+            // 当用户积分大于排行榜中最低积分时,更新排行榜
             if (user.Score > lowestScoreInRankings)
             {
                 rankingsRwl.EnterWriteLock();
@@ -333,6 +354,7 @@ namespace Service
                 // 更新排行榜用户信息
                 try
                 {
+                    // 当该用户不再排行榜中时,加入排行榜中
                     if (!Rankings.RankingUsers.Exists(u => u.Id == user.Id))
                     {
                         if (Rankings.RankingUsers.Count == 200)
@@ -346,9 +368,11 @@ namespace Service
                     }
                     else
                     {
+                        // 更新排行榜中用户积分
                         Rankings.RankingUsers.Find(u => u.Id == user.Id).Score = user.Score;
                     }
 
+                    // 对排行榜进行重新排序
                     Rankings.RankingUsers = Rankings.RankingUsers.OrderByDescending(u => u.Score).ToList();
                 }
                 finally
@@ -380,7 +404,7 @@ namespace Service
         }
 
         /// <summary>
-        /// 更新用户积分信息
+        /// 更新用户数据库积分
         /// </summary>
         /// <param name="user"></param>
         private static void Update(User user)

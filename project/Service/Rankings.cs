@@ -3,7 +3,7 @@
 namespace Service
 {
     /// <summary>
-    /// 排行榜(前100名)
+    /// 排行榜(前200名)
     /// </summary>
     class Rankings
     {
