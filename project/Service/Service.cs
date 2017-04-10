@@ -274,12 +274,11 @@ namespace Service
                 var now = DateTime.Now;
 
                 // 当上次匹配时间距离现在超过一个小时,将用户从匹配数组中移除
-                for (int i = 0; i < matchUsers.Count; i++)
+                foreach (var user in matchUsers.AsParallel())
                 {
-                    if (now - matchUsers[i].LastMatchTime > TimeSpan.FromHours(1))
+                    if (now - user.LastMatchTime > TimeSpan.FromHours(1))
                     {
-                        matchUsers.RemoveAt(i);
-                        i--;
+                        matchUsers.Remove(user);
                     }
                 }
             }
