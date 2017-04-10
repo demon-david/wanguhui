@@ -5,7 +5,7 @@ namespace Service
     /// <summary>
     /// 排行榜(前200名)
     /// </summary>
-    class ScoreRankings
+    internal class ScoreRankings
     {
         /// <summary>
         /// 前200名玩家信息

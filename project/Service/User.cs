@@ -36,5 +36,18 @@ namespace Service
         /// 匹配到的对手
         /// </summary>
         public User MatchUser { get; set; }
+
+        /// <summary>
+        /// 用于该用于同步
+        /// </summary>
+        public Object lockObject { get; set; }
+
+        /// <summary>
+        /// 初始化
+        /// </summary>
+        public User ()
+        {
+            lockObject = new Object();
+        }
     }
 }

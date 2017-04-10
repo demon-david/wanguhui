@@ -42,13 +42,8 @@ namespace Service
         /// <summary>
         /// 与数据库交互操作
         /// </summary>
-        private static readonly UserDAL DbOperation = new UserDAL();
+        private static readonly UserDAL mUserDAL = new UserDAL();
 
-        /// <summary>
-        /// 用户起始积分
-        /// </summary>
-        private const Int32 mStartScore = 200;
-        
         #endregion
 
         #region 构造函数
@@ -65,7 +60,7 @@ namespace Service
             mManualResetEvent = new ManualResetEvent(false);
 
             // 初始化排行榜
-            ScoreRankings.ScoreRankingUsers = DbOperation.GetTop<User>(200);
+            ScoreRankings.ScoreRankingUsers = mUserDAL.GetTop<User>(CommonConst.NumInRankings);
 
             // 初始化匹配线程
             var matchThread = new Thread(MatchThread) { IsBackground = true };
@@ -73,17 +68,11 @@ namespace Service
 
             // 初始化移除最近一个小时没有进行匹配的用户的线程,一小时触发一次
             mRemoveUserThread = new Timer(RemoveUsers, null, TimeSpan.Zero, TimeSpan.FromHours(1));
+
+            // 注册重置事件
+            DailyTask.Reset += Task_Reset;
         }
 
-        /// <summary>
-        /// 初始化实例字段
-        /// </summary>
-        public UserService()
-        {
-            // 注册重置事件
-            Task.Reset += Task_Reset;
-        }
-        
         #endregion
 
         #region 用户信息重置
@@ -95,19 +84,15 @@ namespace Service
         {
             // 重置匹配数组中用户信息
             mMatchRwl.EnterWriteLock();
-
-            mMatchUsers.ForEach(a => a.Score = mStartScore);
-
+            mMatchUsers.ForEach(a => a.Score = CommonConst.StartScore);
             mMatchRwl.ExitWriteLock();
 
             // 重置排行榜中用户信息
             mRankingsRwl.EnterWriteLock();
-
-            ScoreRankings.ScoreRankingUsers.ForEach(a => a.Score = mStartScore);
-
+            ScoreRankings.ScoreRankingUsers.ForEach(a => a.Score = CommonConst.StartScore);
             mRankingsRwl.ExitWriteLock();
         }
-        
+
         #endregion
 
         #region 匹配相关
@@ -124,46 +109,43 @@ namespace Service
                 {
                     mManualResetEvent.WaitOne();
                 }
-                else
-                {
-                    // 匹配逻辑处理
-                    mMatchRwl.EnterReadLock();
+                // 匹配逻辑处理
+                mMatchRwl.EnterReadLock();
 
-                    // 遍历每个用户查找相应的匹配用户
-                    foreach (var user in mMatchUsers.AsParallel())
+                // 遍历每个用户查找相应的匹配用户
+                foreach (var user in mMatchUsers)
+                {
+                    // 用户尚未开始匹配或者用户已匹配成功,则不进行匹配
+                    if (!user.IsMatching || user.MatchUser != null)
+                    {
+                        continue;
+                    }
+
+                    // 该用户在匹配中且尚未找到匹配对手,进行匹配
+                    var result = Monitor.TryEnter(user.lockObject);
+                    if (result)
                     {
                         // 用户尚未开始匹配或者用户已匹配成功,则不进行匹配
-                        if (!user.IsMatching || user.MatchUser != null)
+                        if ((!user.IsMatching) || user.MatchUser != null)
                         {
                             continue;
                         }
 
-                        // 该用户在匹配中且尚未找到匹配对手,进行匹配
-                        var result = Monitor.TryEnter(user);
-                        if (result)
+                        try
                         {
-                            // 用户尚未开始匹配或者用户已匹配成功,则不进行匹配
-                            if ((!user.IsMatching) || user.MatchUser != null)
-                            {
-                                continue;
-                            }
-
-                            try
-                            {
-                                // 查找匹配用户
-                                FindMatchUser(user);
-                            }
-                            finally
-                            {
-                                Monitor.Exit(user);
-                            }
+                            // 查找匹配用户
+                            FindMatchUser(user);
+                        }
+                        finally
+                        {
+                            Monitor.Exit(user.lockObject);
                         }
                     }
-
-                    mMatchRwl.ExitReadLock();
-
-                    Thread.Sleep(20);
                 }
+
+                mMatchRwl.ExitReadLock();
+
+                Thread.Sleep(20);
             }
         }
 
@@ -174,13 +156,13 @@ namespace Service
         private static void FindMatchUser(User user)
         {
             // 循环遍历每个用户去查找匹配用户
-            foreach (var item in mMatchUsers.AsParallel())
+            foreach (var item in mMatchUsers)
             {
                 // 当用户在匹配中、尚未匹配成功、积分差距不超过100时,进行匹配
                 if (user != item && item.IsMatching && item.MatchUser == null
                     && user.Score + 100 >= item.Score && user.Score - 100 <= item.Score)
                 {
-                    lock (item)
+                    lock (item.lockObject)
                     {
                         if (user != item && item.IsMatching && item.MatchUser == null
                             && user.Score + 100 >= item.Score && user.Score - 100 <= item.Score)
@@ -211,9 +193,7 @@ namespace Service
 
             // 查询用户信息
             mMatchRwl.EnterReadLock();
-
             user = mMatchUsers.Find(a => a.Id.ToString() == userId);
-
             mMatchRwl.ExitReadLock();
 
             // 匹配数组不存在该用户时,从数据库中获取用户信息并存入匹配数组中
@@ -223,7 +203,7 @@ namespace Service
 
                 try
                 {
-                    user = DbOperation.GetUser<User>(userId);
+                    user = mUserDAL.GetUser<User>(userId);
                     mMatchUsers.Add(user);
                 }
                 finally
@@ -308,7 +288,7 @@ namespace Service
         /// <param name="user"></param>
         private static void Update(User user)
         {
-            DbOperation.Updata(user.Id.ToString(), user.Score);
+            mUserDAL.Updata(user.Id.ToString(), user.Score);
         }
 
         #endregion
@@ -370,7 +350,7 @@ namespace Service
                 mMatchRwl.ExitWriteLock();
             }
         }
-        
+
         #endregion
 
         #region 排行榜相关
@@ -401,7 +381,7 @@ namespace Service
                     // 当该用户不再排行榜中时,加入排行榜中
                     if (!ScoreRankings.ScoreRankingUsers.Exists(u => u.Id == user.Id))
                     {
-                        if (ScoreRankings.ScoreRankingUsers.Count == 200)
+                        if (ScoreRankings.ScoreRankingUsers.Count == CommonConst.NumInRankings)
                         {
                             ScoreRankings.ScoreRankingUsers[ScoreRankings.ScoreRankingUsers.Count - 1] = user;
                         }
@@ -444,7 +424,7 @@ namespace Service
         /// <returns>积分前100名的玩家</returns>
         public List<User> GetRankings()
         {
-            return ScoreRankings.ScoreRankingUsers.OrderByDescending(u => u.Score).Take(100).ToList();
+            return ScoreRankings.ScoreRankingUsers.OrderByDescending(u => u.Score).Take(CommonConst.NumToGetInRankings).ToList();
         }
 
         #endregion

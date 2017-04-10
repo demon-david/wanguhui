@@ -20,16 +20,23 @@ namespace MySqlDatabase
         /// <summary>
         /// 执行查询语句
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="sql"></param>
-        /// <returns></returns>
-        public static List<T> ExecuteQuery<T>(String sql) where T : class,new()
+        /// <typeparam name="T">类型</typeparam>
+        /// <param name="sql">查询语句</param>
+        /// <param name="param">查询参数</param>
+        /// <returns>查询结果</returns>
+        public static List<T> ExecuteQuery<T>(String sql, Dictionary<String, String> param) where T : class,new()
         {
             List<T> result;
+
             using (var conn = new MySqlConnection(ConnectionString))
             {
                 conn.Open();
-                var adapter = new MySqlDataAdapter(sql, conn);
+                var command = new MySqlCommand(sql, conn);
+                foreach (var para in param)
+                {
+                    command.Parameters.Add(para.Key, para.Value);
+                }
+                var adapter = new MySqlDataAdapter(command);
                 var ds = new DataSet();
                 adapter.Fill(ds);
                 result = Mapping<T>(ds);
@@ -41,19 +48,26 @@ namespace MySqlDatabase
         /// <summary>
         /// 执行非查询语句
         /// </summary>
-        /// <param name="sql"></param>
+        /// <param name="sql">查询语句</param>
+        /// <param name="param">查询参数</param>
         /// <returns>返回受影响行数</returns>
-        public static Int32 ExecuteNonQuery(String sql)
+        public static Int32 ExecuteNonQuery(String sql, Dictionary<String, String> param)
         {
             var result = 0;
+
             using (var conn = new MySqlConnection(ConnectionString))
             {
                 conn.Open();
+
                 using (var tran = conn.BeginTransaction())
                 {
                     try
                     {
                         var mySqlCommand = new MySqlCommand(sql, conn, tran);
+                        foreach (var para in param)
+                        {
+                            mySqlCommand.Parameters.Add(para.Key, para.Value);
+                        }
                         result = mySqlCommand.ExecuteNonQuery();
                         tran.Commit();
                     }
@@ -75,10 +89,12 @@ namespace MySqlDatabase
         private static List<T> Mapping<T>(DataSet ds) where T : new()
         {
             var result = new List<T>();
+
             var type = typeof(T);
             foreach (DataRow row in ds.Tables[0].Rows)
             {
                 var user = new T();
+
                 foreach (DataColumn column in ds.Tables[0].Columns)
                 {
                     type.GetProperties().ToList().ForEach(property =>
@@ -87,8 +103,10 @@ namespace MySqlDatabase
                             property.SetValue(user, row[column], null);
                     });
                 }
+
                 result.Add(user);
             }
+
             return result;
         }
     }

@@ -22,16 +22,15 @@ namespace wanguhui.Controllers
         /// <returns>进入匹配成功与否</returns>
         public Boolean GetMatch(String id)
         {
-            var result = false;
             try
             {
                 service.StartMatch(id);
-                result = true;
+                return true;
             }
-            catch
+            catch (Exception ex)
             {
+                return false;
             }
-            return result;
         }
     }
 }
