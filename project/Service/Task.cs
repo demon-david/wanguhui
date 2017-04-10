@@ -23,7 +23,7 @@ namespace Service
         /// <summary>
         /// 与数据库交互类
         /// </summary>
-        private static DbOperation dbOperation = new DbOperation();
+        private static readonly DbOperation DbOperation = new DbOperation();
 
         static Task()
         {
@@ -45,7 +45,7 @@ namespace Service
         private static void TimerCallback(Object state)
         {
             // 将所有玩家积分重置
-            var result = dbOperation.ResetUsers();
+            var result = DbOperation.ResetUsers();
 
             // 更新用户数据库信息后,触发重置事件
             if (result)

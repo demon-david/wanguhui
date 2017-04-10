@@ -45,7 +45,7 @@ namespace Service
         /// <summary>
         /// 与数据库交互操作
         /// </summary>
-        private static DbOperation dbOperation = new DbOperation();
+        private static readonly DbOperation DbOperation = new DbOperation();
 
         static Service()
         {
@@ -56,11 +56,10 @@ namespace Service
             manualResetEvent = new ManualResetEvent(false);
 
             // 初始化排行榜
-            Rankings.RankingUsers = dbOperation.GetTop<User>(200);
+            Rankings.RankingUsers = DbOperation.GetTop<User>(200);
 
             // 初始化匹配线程
-            matchThread = new Thread(MatchThread);
-            matchThread.IsBackground = true;
+            matchThread = new Thread(MatchThread) { IsBackground = true };
             matchThread.Start();
 
             // 初始化移除最近一个小时没有进行匹配的用户的线程
@@ -115,7 +114,7 @@ namespace Service
 
                 try
                 {
-                    user = dbOperation.GetUser<User>(userId);
+                    user = DbOperation.GetUser<User>(userId);
                     matchUsers.Add(user);
                 }
                 finally
@@ -338,7 +337,7 @@ namespace Service
         private static void UpdateRankings(User user)
         {
             // 排行榜中最低积分
-            var lowestScoreInRankings = 0;
+            Int32 lowestScoreInRankings;
 
             // 获取排行榜中最低积分
             lock (Rankings.RankingUsers)
@@ -409,7 +408,7 @@ namespace Service
         /// <param name="user"></param>
         private static void Update(User user)
         {
-            dbOperation.Updata(user.Id.ToString(), user.Score);
+            DbOperation.Updata(user.Id.ToString(), user.Score);
         }
     }
 }

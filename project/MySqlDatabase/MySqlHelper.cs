@@ -15,7 +15,7 @@ namespace MySqlDatabase
         /// <summary>
         /// 连接字符串
         /// </summary>
-        private static String connectionString = ConfigurationManager.ConnectionStrings["MySqlConnection"].ConnectionString;
+        private static readonly String ConnectionString = ConfigurationManager.ConnectionStrings["MySqlConnection"].ConnectionString;
 
         /// <summary>
         /// 执行查询语句
@@ -26,7 +26,7 @@ namespace MySqlDatabase
         public static List<T> ExecuteQuery<T>(String sql) where T : class,new()
         {
             var result = new List<T>();
-            using (var conn = new MySqlConnection(connectionString))
+            using (var conn = new MySqlConnection(ConnectionString))
             {
                 conn.Open();
                 var adapter = new MySqlDataAdapter(sql, conn);
@@ -46,7 +46,7 @@ namespace MySqlDatabase
         public static Int32 ExecuteNonQuery(String sql)
         {
             var result = 0;
-            using (var conn = new MySqlConnection(connectionString))
+            using (var conn = new MySqlConnection(ConnectionString))
             {
                 conn.Open();
                 using (var tran = conn.BeginTransaction())
