@@ -1,9 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System;
 using System.Web.Http;
 
 namespace wanguhui.Controllers
@@ -22,9 +17,18 @@ namespace wanguhui.Controllers
         /// </summary>
         /// <param name="id">用户id</param>
         /// <returns></returns>
-        public void GetMatch(String id)
+        public Boolean GetMatch(String id)
         {
-            Service.Match(id);
+            var result = false;
+            try
+            {
+                Service.StartMatch(id);
+                result = true;
+            }
+            catch
+            {
+            }
+            return result;
         }
     }
 }

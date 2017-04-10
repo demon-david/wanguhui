@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Rankings.cs" />
     <Compile Include="User.cs" />
     <Compile Include="MySQLHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

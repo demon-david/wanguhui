@@ -17,7 +17,7 @@ namespace MvcApplication3.Controllers
         /// </summary>
         /// <param name="id">用户id</param>
         /// <returns></returns>
-        public Int32 GetResult(String id)
+        public FightResult GetResult(String id)
         {
             return Service.GetFightResult(id);
         }

@@ -16,7 +16,7 @@ namespace Service
         /// <summary>
         /// 连接字符串
         /// </summary>
-        private static String connectionString = ConfigurationManager.AppSettings["MySqlConnection"];
+        private static String connectionString = ConfigurationManager.ConnectionStrings["MySqlConnection"].ConnectionString;
 
         /// <summary>
         /// 执行查询语句
