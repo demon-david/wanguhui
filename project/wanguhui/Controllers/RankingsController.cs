@@ -5,20 +5,23 @@ namespace MvcApplication3.Controllers
 {
     using Service;
 
+    /// <summary>
+    /// 获取排行榜接口
+    /// </summary>
     public class RankingsController : ApiController
     {
         /// <summary>
         /// 初始化服务类
         /// </summary>
-        public Service Service = new Service();
+        private UserService service = new UserService();
 
         /// <summary>
-        /// 获取前100玩家信息
+        /// 获取前100用户信息
         /// </summary>
-        /// <returns></returns>
+        /// <returns>前100名用户信息</returns>
         public List<User> GetRankings()
         {
-            return Service.GetRankings();
+            return service.GetRankings();
         }
     }
 }

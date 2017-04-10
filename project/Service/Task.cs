@@ -13,7 +13,12 @@ namespace Service
         /// <summary>
         /// 每周结算和积分清零线程
         /// </summary>
-        private static Timer task;
+        private static Timer mTask;
+
+        /// <summary>
+        /// 与数据库交互类
+        /// </summary>
+        private static readonly UserDAL mDbOperation = new UserDAL();
 
         /// <summary>
         /// 重置事件
@@ -21,10 +26,8 @@ namespace Service
         public static event Action Reset;
 
         /// <summary>
-        /// 与数据库交互类
+        /// 初始化静态字段
         /// </summary>
-        private static readonly DbOperation DbOperation = new DbOperation();
-
         static Task()
         {
             // 今天时间
@@ -32,10 +35,10 @@ namespace Service
 
             // 计算距离每周结算日期剩余的毫秒数
             var dayLength = (7 - (Int32)today.DayOfWeek) % 7 + 1;
-            var millisecondLength = GetMillisecond((TimeSpan.FromDays(dayLength))) - GetMillisecond(today - today.Date);
+            var millisecondLength = (Int32)(TimeSpan.FromDays(dayLength).TotalMilliseconds - (today - today.Date).TotalMilliseconds);
 
             // 初始化线程,第一次触发在该周周末,后面每次触发间隔一周
-            task = new Timer(TimerCallback, null, millisecondLength, GetMillisecond(TimeSpan.FromDays(7)));
+            mTask = new Timer(TimerCallback, null, millisecondLength, (Int32)TimeSpan.FromDays(7).TotalMilliseconds);
         }
 
         /// <summary>
@@ -45,7 +48,7 @@ namespace Service
         private static void TimerCallback(Object state)
         {
             // 将所有玩家积分重置
-            var result = DbOperation.ResetUsers();
+            var result = mDbOperation.ResetUsers();
 
             // 更新用户数据库信息后,触发重置事件
             if (result)
@@ -55,16 +58,6 @@ namespace Service
                     Reset();
                 }
             }
-        }
-
-        /// <summary>
-        /// 计算毫秒
-        /// </summary>
-        /// <param name="time"></param>
-        /// <returns>返回TimeSpan的毫秒数</returns>
-        private static Int32 GetMillisecond(TimeSpan time)
-        {
-            return (((time.Days * 24 + time.Hours) * 60 + time.Minutes) * 60 + time.Seconds) * 1000 + time.Milliseconds;
         }
     }
 }

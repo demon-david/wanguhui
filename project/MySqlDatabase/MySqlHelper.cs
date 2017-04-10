@@ -25,7 +25,7 @@ namespace MySqlDatabase
         /// <returns></returns>
         public static List<T> ExecuteQuery<T>(String sql) where T : class,new()
         {
-            var result = new List<T>();
+            List<T> result;
             using (var conn = new MySqlConnection(ConnectionString))
             {
                 conn.Open();

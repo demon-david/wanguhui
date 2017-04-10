@@ -5,24 +5,27 @@ namespace wanguhui.Controllers
 {
     using Service;
 
+    /// <summary>
+    /// 发起匹配接口
+    /// </summary>
     public class MatchController : ApiController
     {
         /// <summary>
         /// 初始化服务类
         /// </summary>
-        public Service Service = new Service();
+        private UserService service = new UserService();
 
         /// <summary>
         /// 匹配对手
         /// </summary>
         /// <param name="id">用户id</param>
-        /// <returns></returns>
+        /// <returns>进入匹配成功与否</returns>
         public Boolean GetMatch(String id)
         {
             var result = false;
             try
             {
-                Service.StartMatch(id);
+                service.StartMatch(id);
                 result = true;
             }
             catch
