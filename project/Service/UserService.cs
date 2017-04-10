@@ -176,7 +176,7 @@ namespace Service
             // 循环遍历每个用户去查找匹配用户
             foreach (var item in mMatchUsers.AsParallel())
             {
-                // 当用户在匹配中、尚未匹配成功、满足匹配条件时,进行匹配
+                // 当用户在匹配中、尚未匹配成功、积分差距不超过100时,进行匹配
                 if (user != item && item.IsMatching && item.MatchUser == null
                     && user.Score + 100 >= item.Score && user.Score - 100 <= item.Score)
                 {
