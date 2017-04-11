@@ -32,13 +32,16 @@ namespace MySqlDatabase
             {
                 conn.Open();
                 var command = new MySqlCommand(sql, conn);
+
                 foreach (var para in param)
                 {
                     command.Parameters.AddWithValue(para.Key, para.Value);
                 }
+
                 var adapter = new MySqlDataAdapter(command);
                 var ds = new DataSet();
                 adapter.Fill(ds);
+
                 result = Mapping<T>(ds);
             }
 
@@ -68,6 +71,7 @@ namespace MySqlDatabase
                         {
                             mySqlCommand.Parameters.AddWithValue(para.Key, para.Value);
                         }
+
                         result = mySqlCommand.ExecuteNonQuery();
                         tran.Commit();
                     }
