@@ -82,10 +82,11 @@ namespace MySqlDatabase
         }
 
         /// <summary>
-        /// 将DataSet对象映射为相应的类对象
+        ///  将DataSet对象映射为相应的类对象
         /// </summary>
-        /// <param name="ds"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">类型</typeparam>
+        /// <param name="ds">数据集</param>
+        /// <returns>类型对象列表</returns>
         private static List<T> Mapping<T>(DataSet ds) where T : new()
         {
             var result = new List<T>();
