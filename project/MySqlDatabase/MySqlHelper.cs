@@ -34,7 +34,7 @@ namespace MySqlDatabase
                 var command = new MySqlCommand(sql, conn);
                 foreach (var para in param)
                 {
-                    command.Parameters.Add(para.Key, para.Value);
+                    command.Parameters.AddWithValue(para.Key, para.Value);
                 }
                 var adapter = new MySqlDataAdapter(command);
                 var ds = new DataSet();
@@ -66,7 +66,7 @@ namespace MySqlDatabase
                         var mySqlCommand = new MySqlCommand(sql, conn, tran);
                         foreach (var para in param)
                         {
-                            mySqlCommand.Parameters.Add(para.Key, para.Value);
+                            mySqlCommand.Parameters.AddWithValue(para.Key, para.Value);
                         }
                         result = mySqlCommand.ExecuteNonQuery();
                         tran.Commit();
