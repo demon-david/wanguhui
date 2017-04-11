@@ -40,14 +40,14 @@ namespace Service
         /// <summary>
         /// 用于该用于同步
         /// </summary>
-        public Object lockObject { get; set; }
+        public Object LockObject { get; set; }
 
         /// <summary>
         /// 初始化
         /// </summary>
-        public User ()
+        public User()
         {
-            lockObject = new Object();
+            LockObject = new Object();
         }
     }
 }
