@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wanguhui", "wanguhui\wanguh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MySqlDatabase", "MySqlDatabase\MySqlDatabase.csproj", "{2B6519F4-A2FC-4FDA-B3BD-87ABA0D69208}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{69F160C0-7FBF-4AE4-B8BC-126B8F707377}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{2B6519F4-A2FC-4FDA-B3BD-87ABA0D69208}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B6519F4-A2FC-4FDA-B3BD-87ABA0D69208}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B6519F4-A2FC-4FDA-B3BD-87ABA0D69208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69F160C0-7FBF-4AE4-B8BC-126B8F707377}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69F160C0-7FBF-4AE4-B8BC-126B8F707377}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69F160C0-7FBF-4AE4-B8BC-126B8F707377}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69F160C0-7FBF-4AE4-B8BC-126B8F707377}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
