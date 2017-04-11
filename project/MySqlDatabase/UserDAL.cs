@@ -4,6 +4,8 @@ using System.Linq;
 
 namespace MySqlDatabase
 {
+    using Utils;
+
     /// <summary>
     /// 与用户表交互操作
     /// </summary>
