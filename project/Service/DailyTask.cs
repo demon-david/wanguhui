@@ -18,7 +18,7 @@ namespace Service
         /// <summary>
         /// 与数据库交互类
         /// </summary>
-        private static readonly UserDAL mDbOperation = new UserDAL();
+        private static readonly UserDAL mUserDAL = new UserDAL();
 
         /// <summary>
         /// 重置事件
@@ -48,7 +48,7 @@ namespace Service
         private static void TimerCallback(Object state)
         {
             // 将所有玩家积分重置
-            var result = mDbOperation.ResetUsers();
+            var result = mUserDAL.ResetUsers();
 
             // 更新用户数据库信息后,触发重置事件
             if (result)
