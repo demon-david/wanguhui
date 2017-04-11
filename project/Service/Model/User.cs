@@ -38,7 +38,7 @@ namespace Service
         public User MatchUser { get; set; }
 
         /// <summary>
-        /// 用于该用于同步
+        /// 用于该用户同步
         /// </summary>
         public Object LockObject { get; set; }
 
