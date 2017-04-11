@@ -67,9 +67,13 @@ namespace MySqlDatabase
         /// <returns>重置成功与否</returns>
         public Boolean ResetUsers()
         {
-            var sql = @"SET SQL_SAFE_UPDATES = 0;update wanguhui.user set score=200;SET SQL_SAFE_UPDATES = 1;";
+            var sql = @"SET SQL_SAFE_UPDATES = 0;update wanguhui.user set score=@score;SET SQL_SAFE_UPDATES = 1;";
+            var paramDic = new Dictionary<String, String>
+            {
+                {"@score",200.ToString()}
+            };
 
-            return MySqlHelper.ExecuteNonQuery(sql, null) > 0;
+            return MySqlHelper.ExecuteNonQuery(sql, paramDic) > 0;
         }
     }
 }
