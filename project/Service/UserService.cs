@@ -326,7 +326,7 @@ namespace Service
         /// <summary>
         /// 移除最近一个小时没有进行匹配的用户
         /// </summary>
-        /// <param name="state">一个与方法相关的对象或为 null</param>
+        /// <param name="state">一个与方法相关的对象或为null</param>
         private static void RemoveUsers(Object state)
         {
             mMatchRwl.EnterWriteLock();
@@ -410,9 +410,7 @@ namespace Service
                 if (ScoreRankings.ScoreRankingUsers.Exists(u => u.Id == user.Id))
                 {
                     mRankingsRwl.EnterWriteLock();
-
                     ScoreRankings.ScoreRankingUsers.Remove(ScoreRankings.ScoreRankingUsers.Find(u => u.Id == user.Id));
-
                     mRankingsRwl.ExitWriteLock();
                 }
             }
